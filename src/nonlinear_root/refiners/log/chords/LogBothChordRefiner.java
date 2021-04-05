@@ -1,0 +1,40 @@
+package nonlinear_root.refiners.log.chords;
+
+import nonlinear_root.deviations.AbsoluteFunDeviator;
+import nonlinear_root.refiners.LogRefiner;
+import nonlinear_root.refiners.just.chords.BothChordRefiner;
+
+import java.util.function.Function;
+
+public final class LogBothChordRefiner extends BothChordRefiner implements LogRefiner {
+  protected final StringBuilder log = new StringBuilder( "" );
+  public LogBothChordRefiner( double a, double b, Function<Double, Double> fun ) {
+    super( a, b, fun );
+    log.append( "Уточнение корня уравнения методом половинного деления ( хорд )\n" );
+    log.append( "+------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+\n" );
+    log.append( "| No   | a               | b               | x               | f(a)            | f(b)            | f(x)            | |a - b|         |\n" );
+  }
+
+  @Override
+  public double refine( double prex, double EPS ) {
+    if ( iterations >= getThreshold() )
+      return prex;
+    iterations++;
+    double x = ( a * FUN.apply( b ) - b * FUN.apply( a ) ) / ( FUN.apply( b ) - FUN.apply( a ) );
+    log.append( "+------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+\n" );
+    log.append( String.format( "| %1$04d | %2$15.4e | %3$15.4e | %4$15.4e | %5$15.4e | %6$15.4e | %7$15.4e | %8$15.4e |\n", iterations, a, b, x, FUN.apply( a ), FUN.apply( b ), FUN.apply( x ), Math.abs( a - b ) ) );
+    if ( new AbsoluteFunDeviator( x, FUN ).deviation() <= EPS )
+      return x;
+    else {
+      if ( FUN.apply( a ) * FUN.apply( x ) < 0 ) b = x;
+      else a = x;
+      return refine( x, EPS );
+    }
+  }
+
+  @Override
+  public String getRefineLog( ) {
+    log.append( "+------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+\n" );
+    return log.toString();
+  }
+}
